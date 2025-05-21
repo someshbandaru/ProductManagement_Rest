@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ProductManagement.API.MappingProfiles;
 using ProductManagement.Core.Interfaces;
 using ProductManagement.Infrastructure.Data;
 using ProductManagement.Infrastructure.Repositories;
@@ -16,6 +17,8 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+builder.Services.AddAutoMapper(typeof(ProductMappingProfile));
 
 var app = builder.Build();
 
