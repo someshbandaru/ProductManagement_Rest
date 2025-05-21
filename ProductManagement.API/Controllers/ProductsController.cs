@@ -135,6 +135,80 @@ namespace ProductManagement.API.Controllers
 				return StatusCode(500, "Internal server error.");
 			}
 		}
-	}
 
+		// PUT: api/products/decrement-stock/{id}/{quantity}
+		[HttpPut("decrement-stock/{id}/{quantity}")]
+		public async Task<ActionResult> DecrementStock(string id, int quantity)
+		{
+			if (quantity <= 0)
+			{
+				return BadRequest("Quantity must be positive.");
+			}
+
+			try
+			{
+				var product = await _productRepository.GetByIdAsync(id);
+				if (product == null)
+				{
+					return NotFound($"Product with ID '{id}' not found.");
+				}
+
+				if (product.StockAvailable < quantity)
+				{
+					return BadRequest($"Not enough stock for product '{id}'. Available only: {product.StockAvailable}, but Requested: {quantity}");
+				}
+
+				var success = await _productRepository.DecrementStockAsync(id, quantity);
+				if (success)
+				{
+					var updatedProduct = await _productRepository.GetByIdAsync(id);
+					return Ok($"Stock for product '{id}' decremented by {quantity}. New stock: {updatedProduct.StockAvailable}");
+				}
+				else
+				{
+					return StatusCode(500, "Failed to decrement stock due to an internal error.");
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, $"Error decrementing stock for product ID: {id}");
+				return StatusCode(500, "Internal server error.");
+			}
+		}
+
+		// PUT: api/products/add-to-stock/{id}/{quantity}
+		[HttpPut("add-to-stock/{id}/{quantity}")]
+		public async Task<ActionResult> AddToStock(string id, int quantity)
+		{
+			if (quantity <= 0)
+			{
+				return BadRequest("Quantity must be positive as you are adding product.");
+			}
+
+			try
+			{
+				var product = await _productRepository.GetByIdAsync(id);
+				if (product == null)
+				{
+					return NotFound($"Product with ID '{id}' not found.");
+				}
+
+				var success = await _productRepository.AddStockAsync(id, quantity);
+				if (success)
+				{
+					var updatedProduct = await _productRepository.GetByIdAsync(id);
+					return Ok($"Stock for product '{id}' increased by {quantity}. New stock: {updatedProduct.StockAvailable}");
+				}
+				else
+				{
+					return StatusCode(500, "Failed to add stock due to an internal error.");
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, $"Error adding stock for product ID: {id}");
+				return StatusCode(500, "Internal server error.");
+			}
+		}
+	}
 }

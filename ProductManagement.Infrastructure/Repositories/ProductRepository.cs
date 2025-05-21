@@ -74,5 +74,58 @@ namespace ProductManagement.Infrastructure.Repositories
 
 			return Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
 		}
+
+		public async Task<bool> DecrementStockAsync(string id, int quantity)
+		{
+			var product = await _context.Products.FindAsync(id);
+			if (product == null)
+			{
+				return false;
+			}
+
+			if (product.StockAvailable < quantity)
+			{
+				return false;
+			}
+
+			using var transaction = await _context.Database.BeginTransactionAsync();
+			try
+			{
+				product.StockAvailable -= quantity;
+				_context.Products.Update(product);
+				await _context.SaveChangesAsync();
+				await transaction.CommitAsync();
+				return true;
+			}
+			catch
+			{
+				await transaction.RollbackAsync();
+				throw;
+			}
+		}
+
+		public async Task<bool> AddStockAsync(string id, int quantity)
+		{
+			var product = await _context.Products.FindAsync(id);
+			if (product == null)
+			{
+				return false;
+			}
+
+			using var transaction = await _context.Database.BeginTransactionAsync();
+			try
+			{
+				product.StockAvailable += quantity;
+				_context.Products.Update(product);
+				await _context.SaveChangesAsync();
+				await transaction.CommitAsync();
+				return true;
+			}
+			catch
+			{
+				await transaction.RollbackAsync();
+				throw;
+			}
+		}
 	}
 }

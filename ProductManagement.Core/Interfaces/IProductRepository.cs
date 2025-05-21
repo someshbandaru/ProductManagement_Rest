@@ -16,5 +16,7 @@ namespace ProductManagement.Core.Interfaces
 		Task DeleteAsync(string id);
 		Task<bool> ProductExistsAsync(string id);
 		Task<string> GenerateUniqueProductIdAsync();
+		Task<bool> DecrementStockAsync(string id, int quantity);
+		Task<bool> AddStockAsync(string id, int quantity);
 	}
 }
